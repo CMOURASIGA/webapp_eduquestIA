@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storageService } from '../services/storageService';
 import { Exam } from '../types/exam';
@@ -15,7 +15,8 @@ import {
   Trophy, 
   Target, 
   TrendingUp,
-  BrainCircuit
+  BrainCircuit,
+  Sparkles
 } from 'lucide-react';
 import { serieLabels } from '../utils/seriesUtils';
 
@@ -30,10 +31,35 @@ export const DashboardPage: React.FC = () => {
     ));
   }, []);
 
-  const completedExams = exams.filter(e => e.completed);
-  const averageScore = completedExams.length > 0 
-    ? Math.round(completedExams.reduce((acc, curr) => acc + (curr.lastScore || 0), 0) / completedExams.length)
-    : 0;
+  const completedExams = useMemo(() => exams.filter(e => e.completed), [exams]);
+
+  const stats = useMemo(() => {
+    if (completedExams.length === 0) return null;
+
+    const disciplineStats: Record<string, { total: number, sum: number }> = {};
+    
+    completedExams.forEach(exam => {
+      if (!disciplineStats[exam.disciplina]) {
+        disciplineStats[exam.disciplina] = { total: 0, sum: 0 };
+      }
+      disciplineStats[exam.disciplina].total += 1;
+      disciplineStats[exam.disciplina].sum += (exam.lastScore || 0);
+    });
+
+    const averages = Object.entries(disciplineStats).map(([name, data]) => ({
+      name,
+      avg: Math.round(data.sum / data.total)
+    }));
+
+    const sorted = [...averages].sort((a, b) => b.avg - a.avg);
+    
+    return {
+      averageScore: Math.round(completedExams.reduce((acc, curr) => acc + (curr.lastScore || 0), 0) / completedExams.length),
+      topSubject: sorted[0],
+      lowestSubject: sorted.length > 1 ? sorted[sorted.length - 1] : null,
+      totalDisciplines: averages.length
+    };
+  }, [completedExams]);
 
   if (exams.length === 0) {
     return (
@@ -95,7 +121,7 @@ export const DashboardPage: React.FC = () => {
             </div>
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
               <TrendingUp className="mb-4 text-emerald-600 opacity-80" size={32} />
-              <div className="text-3xl font-black text-slate-800">{averageScore}%</div>
+              <div className="text-3xl font-black text-slate-800">{stats?.averageScore || 0}%</div>
               <div className="text-slate-500 text-sm font-medium">Média de Acertos</div>
             </div>
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
@@ -143,28 +169,47 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {appMode === 'aluno' && (
-          <div className="bg-indigo-50 p-8 rounded-3xl border border-indigo-100">
+          <div className="bg-indigo-50 p-8 rounded-3xl border border-indigo-100 h-full flex flex-col justify-center">
             <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
               <BrainCircuit className="text-indigo-600" /> Insight do Gemini
             </h2>
-            <p className="text-indigo-900/70 text-sm leading-relaxed mb-6">
-              Com base no seu histórico de {completedExams.length} provas, você está se saindo melhor em disciplinas de <strong>Ciências Humanas</strong>. Foque em revisitar as explicações de questões de Exatas para equilibrar seu rendimento.
-            </p>
-            <div className="space-y-4">
-              <div className="bg-white p-4 rounded-xl shadow-sm flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600 uppercase">Top Matéria</span>
-                <span className="text-sm font-black text-indigo-600">História (92%)</span>
+            
+            {completedExams.length > 0 && stats ? (
+              <>
+                <p className="text-indigo-900/70 text-sm leading-relaxed mb-6">
+                  Analisando seu histórico de {completedExams.length} prova(s): seu melhor aproveitamento atual está em <strong>{stats.topSubject.name}</strong>. 
+                  {stats.lowestSubject ? ` Recomendamos dedicar um tempo extra para revisar os conceitos de ${stats.lowestSubject.name}, onde seu rendimento médio está em ${stats.lowestSubject.avg}%.` : " Continue assim para manter seu nível de excelência!"}
+                </p>
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-xl shadow-sm flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-600 uppercase">Top Matéria</span>
+                    <span className="text-sm font-black text-indigo-600">{stats.topSubject.name} ({stats.topSubject.avg}%)</span>
+                  </div>
+                  {stats.lowestSubject && (
+                    <div className="bg-white p-4 rounded-xl shadow-sm flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-600 uppercase">A Evoluir</span>
+                      <span className={`text-sm font-black ${stats.lowestSubject.avg < 60 ? 'text-red-500' : 'text-amber-500'}`}>
+                        {stats.lowestSubject.name} ({stats.lowestSubject.avg}%)
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-6">
+                <div className="bg-white/50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="text-indigo-300" />
+                </div>
+                <p className="text-indigo-900/50 text-sm italic">
+                  Complete seu primeiro simulado para que eu possa analisar seu desempenho e gerar recomendações personalizadas.
+                </p>
               </div>
-              <div className="bg-white p-4 rounded-xl shadow-sm flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600 uppercase">A Evoluir</span>
-                <span className="text-sm font-black text-red-500">Matemática (45%)</span>
-              </div>
-            </div>
+            )}
           </div>
         )}
 
         {appMode === 'professor' && (
-          <div className="bg-slate-900 p-8 rounded-3xl text-white shadow-xl flex flex-col justify-between">
+          <div className="bg-slate-900 p-8 rounded-3xl text-white shadow-xl flex flex-col justify-between h-full">
             <div>
               <h2 className="text-xl font-bold mb-2">Dica Pedagógica</h2>
               <p className="text-slate-400 text-sm leading-relaxed">
