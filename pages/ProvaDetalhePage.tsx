@@ -23,7 +23,11 @@ export const ProvaDetalhePage: React.FC = () => {
   useEffect(() => {
     if (id) {
       const found = storageService.getExamById(id);
-      if (found) setExam(found);
+      if (found) {
+        setExam(found);
+        // Se a prova já foi concluída anteriormente e estamos no modo resumo, poderíamos carregar...
+        // Mas para este fluxo, permitimos que o aluno responda novamente se desejar.
+      }
       else navigate('/provas');
     }
   }, [id, navigate]);
@@ -35,6 +39,25 @@ export const ProvaDetalhePage: React.FC = () => {
   };
 
   const handleFinish = () => {
+    if (!exam) return;
+
+    // Calcular o score antes de salvar
+    const total = exam.questions.length;
+    const correctCount = exam.questions.filter(q => userAnswers[q.id] === q.alternativaCorretaId).length;
+    const scorePercentage = Math.round((correctCount / total) * 100);
+
+    // Criar o objeto atualizado
+    const updatedExam: Exam = {
+      ...exam,
+      completed: true,
+      lastScore: scorePercentage
+    };
+
+    // Persistir no localStorage
+    storageService.saveExam(updatedExam);
+    
+    // Atualizar estado local para refletir a mudança
+    setExam(updatedExam);
     setShowSummary(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -86,6 +109,9 @@ export const ProvaDetalhePage: React.FC = () => {
               <Badge>{serieLabels[exam.serie]}</Badge>
               {appMode === 'aluno' && !showSummary && (
                 <Badge variant="warning">Progresso: {answeredCount}/{exam.questions.length}</Badge>
+              )}
+              {appMode === 'aluno' && exam.completed && !showSummary && (
+                <Badge variant="success">Última Nota: {exam.lastScore}%</Badge>
               )}
             </div>
             <h1 className="text-3xl font-black text-slate-800">{exam.title}</h1>
