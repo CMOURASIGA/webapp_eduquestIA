@@ -13,58 +13,73 @@ interface GenerateParams {
 }
 
 export async function generateExamWithGemini(params: GenerateParams): Promise<Partial<Exam>> {
-  // A chave de API é obtida exclusivamente de process.env.API_KEY
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const prompt = buildExamGenerationPrompt(params);
-
-  const response = await ai.models.generateContent({
-    model: params.modelName || 'gemini-3-flash-preview',
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          questions: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                id: { type: Type.STRING },
-                enunciado: { type: Type.STRING },
-                alternativas: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: { type: Type.STRING },
-                      label: { type: Type.STRING },
-                      texto: { type: Type.STRING }
-                    },
-                    required: ["id", "label", "texto"]
-                  }
-                },
-                alternativaCorretaId: { type: Type.STRING },
-                explicacao: { type: Type.STRING },
-                competenciaOuHabilidade: { type: Type.STRING }
-              },
-              required: ["id", "enunciado", "alternativas", "alternativaCorretaId", "explicacao"]
-            }
-          }
-        },
-        required: ["questions"]
-      }
-    }
-  });
-
-  const resultText = response.text;
-  if (!resultText) {
-    throw new Error("Não foi possível obter resposta do Gemini.");
+  // A chave de API deve estar disponível em process.env.API_KEY.
+  // Criamos a instância aqui para garantir o uso da chave injetada no ambiente.
+  const apiKey = process.env.API_KEY;
+  
+  if (!apiKey) {
+    throw new Error("API_KEY não encontrada no ambiente. Verifique as configurações da Vercel.");
   }
 
-  const parsed = JSON.parse(resultText);
-  return {
-    questions: parsed.questions as Question[],
-    createdAt: new Date().toISOString()
-  };
+  const ai = new GoogleGenAI({ apiKey });
+  const prompt = buildExamGenerationPrompt(params);
+
+  try {
+    const response = await ai.models.generateContent({
+      model: params.modelName || 'gemini-3-flash-preview',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            questions: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: { type: Type.STRING },
+                  enunciado: { type: Type.STRING },
+                  alternativas: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        id: { type: Type.STRING },
+                        label: { type: Type.STRING },
+                        texto: { type: Type.STRING }
+                      },
+                      required: ["id", "label", "texto"]
+                    }
+                  },
+                  alternativaCorretaId: { type: Type.STRING },
+                  explicacao: { type: Type.STRING },
+                  competenciaOuHabilidade: { type: Type.STRING }
+                },
+                required: ["id", "enunciado", "alternativas", "alternativaCorretaId", "explicacao"]
+              }
+            }
+          },
+          required: ["questions"]
+        }
+      }
+    });
+
+    const resultText = response.text;
+    if (!resultText) {
+      throw new Error("O Gemini retornou uma resposta vazia.");
+    }
+
+    const parsed = JSON.parse(resultText);
+    return {
+      questions: (parsed.questions as Question[]).map(q => ({
+        ...q,
+        id: q.id || crypto.randomUUID()
+      })),
+      createdAt: new Date().toISOString()
+    };
+  } catch (error: any) {
+    console.error("Erro na chamada ao Gemini:", error);
+    throw new Error(error.message || "Erro desconhecido ao gerar a prova.");
+  }
 }
