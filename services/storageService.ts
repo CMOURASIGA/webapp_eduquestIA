@@ -4,6 +4,7 @@ import { GeminiConfig } from '../types/settings';
 
 const EXAMS_KEY = 'eduquest-exams';
 const CONFIG_KEY = 'eduquest-gemini-config';
+const RECENT_NAMES_KEY = 'eduquest-recent-names';
 
 export const storageService = {
   saveExam: (exam: Exam): void => {
@@ -38,5 +39,23 @@ export const storageService = {
   getGeminiConfig: (): GeminiConfig | null => {
     const data = localStorage.getItem(CONFIG_KEY);
     return data ? JSON.parse(data) : null;
+  },
+
+  getRecentNames: (): string[] => {
+    const data = localStorage.getItem(RECENT_NAMES_KEY);
+    return data ? JSON.parse(data) : [];
+  },
+
+  addRecentName: (name: string): void => {
+    const names = storageService.getRecentNames();
+    const normalizedNewName = name.trim();
+    
+    // Filtra para evitar duplicatas (ignorando case) e mantém apenas os últimos 5
+    const filteredNames = [
+      normalizedNewName,
+      ...names.filter(n => n.toLowerCase() !== normalizedNewName.toLowerCase())
+    ].slice(0, 5);
+
+    localStorage.setItem(RECENT_NAMES_KEY, JSON.stringify(filteredNames));
   }
 };

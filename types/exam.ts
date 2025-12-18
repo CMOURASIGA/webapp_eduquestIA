@@ -23,8 +23,8 @@ export interface Question {
   id: string;
   enunciado: string;
   alternativas: Alternative[];
-  alternativaCorretaId: string; // The ID of the correct alternative
-  explicacao: string; // Study orientation
+  alternativaCorretaId: string;
+  explicacao: string;
   nivelDificuldade?: "baixa" | "media" | "alta";
   competenciaOuHabilidade?: string;
 }
@@ -38,6 +38,14 @@ export interface Exam {
   conteudoBase: string[];
   createdAt: string;
   questions: Question[];
+  // Novos campos para tracking de progresso do aluno localmente
+  lastScore?: number;
+  completed?: boolean;
 }
 
 export type AppMode = "professor" | "aluno";
+
+export interface UserProfile {
+  name: string;
+  role: AppMode;
+}

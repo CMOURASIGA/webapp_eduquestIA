@@ -1,10 +1,13 @@
 
-import React, { createContext, useContext, useState } from 'react';
-import { AppMode } from '../types/exam';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { AppMode, UserProfile } from '../types/exam';
 
 interface AppContextType {
   appMode: AppMode;
-  setAppMode: (mode: AppMode) => void;
+  userName: string;
+  userProfile: UserProfile | null;
+  login: (profile: UserProfile) => void;
+  logout: () => void;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
 }
@@ -12,11 +15,36 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const GeminiConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [appMode, setAppMode] = useState<AppMode>('professor');
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [selectedModel, setSelectedModel] = useState('gemini-3-flash-preview');
 
+  useEffect(() => {
+    const saved = localStorage.getItem('eduquest-user-profile');
+    if (saved) {
+      setUserProfile(JSON.parse(saved));
+    }
+  }, []);
+
+  const login = (profile: UserProfile) => {
+    setUserProfile(profile);
+    localStorage.setItem('eduquest-user-profile', JSON.stringify(profile));
+  };
+
+  const logout = () => {
+    setUserProfile(null);
+    localStorage.removeItem('eduquest-user-profile');
+  };
+
   return (
-    <AppContext.Provider value={{ appMode, setAppMode, selectedModel, setSelectedModel }}>
+    <AppContext.Provider value={{ 
+      appMode: userProfile?.role || 'professor', 
+      userName: userProfile?.name || '',
+      userProfile,
+      login,
+      logout,
+      selectedModel, 
+      setSelectedModel 
+    }}>
       {children}
     </AppContext.Provider>
   );
