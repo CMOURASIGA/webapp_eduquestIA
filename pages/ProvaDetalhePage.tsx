@@ -9,7 +9,7 @@ import { ExamSummary } from '../components/provas/ExamSummary';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { serieLabels } from '../utils/seriesUtils';
-import { ArrowLeft, Send, CheckCircle2, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle2, RotateCcw, Printer, FileDown } from 'lucide-react';
 
 export const ProvaDetalhePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -45,12 +45,33 @@ export const ProvaDetalhePage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   const answeredCount = Object.keys(userAnswers).length;
   const isFinished = answeredCount === exam.questions.length;
 
   return (
-    <div className="max-w-4xl mx-auto pb-24">
-      <header className="mb-10">
+    <div className="max-w-4xl mx-auto pb-24 print:pb-0 print:max-w-none">
+      {/* Cabeçalho de Impressão (visível apenas ao imprimir) */}
+      <div className="hidden print:block mb-8 border-b-2 border-slate-900 pb-4">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h1 className="text-2xl font-bold uppercase">{exam.title}</h1>
+            <p className="text-sm">{exam.disciplina} | {serieLabels[exam.serie]}</p>
+          </div>
+          <div className="text-right text-sm">
+            <p>Data: ____/____/_______</p>
+            <p>Nota: ___________</p>
+          </div>
+        </div>
+        <div className="border-2 border-slate-300 p-2 mb-4">
+          <p className="text-sm font-bold">ALUNO(A): __________________________________________________________________</p>
+        </div>
+      </div>
+
+      <header className="mb-10 print:hidden">
         <button 
           onClick={() => navigate('/provas')}
           className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors mb-6 font-medium"
@@ -59,7 +80,7 @@ export const ProvaDetalhePage: React.FC = () => {
         </button>
 
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
+          <div className="flex-1">
             <div className="flex flex-wrap gap-2 mb-3">
               <Badge variant="info">{exam.disciplina}</Badge>
               <Badge>{serieLabels[exam.serie]}</Badge>
@@ -71,15 +92,20 @@ export const ProvaDetalhePage: React.FC = () => {
             <p className="text-slate-500 mt-2 max-w-2xl">{exam.objetivo}</p>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <Button onClick={handlePrint} variant="outline" className="gap-2">
+              <Printer size={18} /> <span className="hidden sm:inline">Imprimir / PDF</span>
+            </Button>
+            
             {appMode === 'aluno' && isFinished && !showSummary && (
               <Button onClick={handleFinish} className="shadow-lg">
-                <CheckCircle2 size={18} /> Finalizar e Ver Resumo
+                <CheckCircle2 size={18} /> Finalizar
               </Button>
             )}
+            
             {showSummary && (
               <Button onClick={handleReset} variant="outline">
-                <RotateCcw size={18} /> Reiniciar Prova
+                <RotateCcw size={18} /> Reiniciar
               </Button>
             )}
           </div>
@@ -93,20 +119,21 @@ export const ProvaDetalhePage: React.FC = () => {
           onReset={handleReset}
         />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6 print:space-y-8">
           {exam.questions.map((question, idx) => (
-            <QuestionCard
-              key={question.id}
-              index={idx}
-              question={question}
-              mode={appMode}
-              onAnswer={handleAnswer}
-              selectedAnswerId={userAnswers[question.id]}
-            />
+            <div key={question.id} className="print:break-inside-avoid">
+              <QuestionCard
+                index={idx}
+                question={question}
+                mode={appMode}
+                onAnswer={handleAnswer}
+                selectedAnswerId={userAnswers[question.id]}
+              />
+            </div>
           ))}
 
           {appMode === 'aluno' && !isFinished && (
-            <div className="sticky bottom-8 left-0 right-0 p-4 bg-white/80 backdrop-blur border border-slate-200 rounded-2xl shadow-xl flex items-center justify-between z-10 animate-in slide-in-from-bottom-8">
+            <div className="sticky bottom-8 left-0 right-0 p-4 bg-white/80 backdrop-blur border border-slate-200 rounded-2xl shadow-xl flex items-center justify-between z-10 animate-in slide-in-from-bottom-8 print:hidden">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-black">
                   {Math.round((answeredCount / exam.questions.length) * 100)}%
@@ -123,7 +150,7 @@ export const ProvaDetalhePage: React.FC = () => {
           )}
 
           {appMode === 'aluno' && isFinished && (
-            <div className="flex justify-center pt-8">
+            <div className="flex justify-center pt-8 print:hidden">
               <Button onClick={handleFinish} className="px-12 py-4 text-xl shadow-2xl">
                 <Send size={24} /> Finalizar Simulado
               </Button>
@@ -131,6 +158,11 @@ export const ProvaDetalhePage: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Rodapé de Impressão */}
+      <div className="hidden print:block mt-12 pt-4 border-t border-slate-200 text-center text-[10px] text-slate-400">
+        Gerado por EduQuest IA - Material de Estudo Personalizado
+      </div>
     </div>
   );
 };

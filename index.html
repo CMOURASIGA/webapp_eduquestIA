@@ -6,6 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EduQuest IA</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @media print {
+        @page {
+          margin: 1.5cm;
+          size: auto;
+        }
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .print-break-before {
+          page-break-before: always;
+        }
+        .print-no-break {
+          page-break-inside: avoid;
+        }
+      }
+    </style>
     <script>
       // Shim básico para o objeto process exigido pela SDK do Gemini no navegador
       window.process = window.process || { env: {} };

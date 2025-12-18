@@ -9,6 +9,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { NovaProvaPage } from './pages/NovaProvaPage';
 import { ListaProvasPage } from './pages/ListaProvasPage';
 import { ProvaDetalhePage } from './pages/ProvaDetalhePage';
+import { InstrucoesPage } from './pages/InstrucoesPage';
 
 const App: React.FC = () => {
   return (
@@ -20,6 +21,7 @@ const App: React.FC = () => {
             <Route path="/nova-prova" element={<NovaProvaPage />} />
             <Route path="/provas" element={<ListaProvasPage />} />
             <Route path="/provas/:id" element={<ProvaDetalhePage />} />
+            <Route path="/instrucoes" element={<InstrucoesPage />} />
           </Routes>
         </MainLayout>
       </Router>
