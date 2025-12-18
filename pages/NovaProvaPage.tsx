@@ -11,7 +11,7 @@ import { LoadingOverlay } from '../components/feedback/LoadingOverlay';
 import { BrainCircuit, BookOpen, Target, FileText, AlertTriangle } from 'lucide-react';
 
 export const NovaProvaPage: React.FC = () => {
-  const { config, isConfigured } = useGeminiConfig();
+  const { selectedModel } = useGeminiConfig();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,11 +27,6 @@ export const NovaProvaPage: React.FC = () => {
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isConfigured) {
-      setError("Configure sua chave de API do Gemini antes de continuar.");
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
 
@@ -39,8 +34,7 @@ export const NovaProvaPage: React.FC = () => {
       const generated = await generateExamWithGemini({
         ...formData,
         conteudoBase: [formData.conteudoBase],
-        apiKey: config.apiKey,
-        modelName: config.model
+        modelName: selectedModel
       });
 
       const newExam = {
@@ -57,7 +51,7 @@ export const NovaProvaPage: React.FC = () => {
       navigate(`/provas/${newExam.id}`);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Ocorreu um erro ao gerar a prova. Verifique sua chave de API e tente novamente.");
+      setError("Ocorreu um erro ao gerar a prova. Verifique sua conexão ou tente um conteúdo base diferente.");
     } finally {
       setIsLoading(false);
     }
@@ -133,14 +127,6 @@ export const NovaProvaPage: React.FC = () => {
                     <option key={val} value={val}>{label}</option>
                   ))}
                 </select>
-                <div className="mt-2 flex gap-2">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                    {getAgeRange(formData.serie)}
-                  </span>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                    {getSchoolLevel(formData.serie)}
-                  </span>
-                </div>
               </div>
 
               <div>

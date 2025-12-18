@@ -9,7 +9,6 @@ import { DashboardPage } from './pages/DashboardPage';
 import { NovaProvaPage } from './pages/NovaProvaPage';
 import { ListaProvasPage } from './pages/ListaProvasPage';
 import { ProvaDetalhePage } from './pages/ProvaDetalhePage';
-import { ConfigGeminiPage } from './pages/ConfigGeminiPage';
 
 const App: React.FC = () => {
   return (
@@ -21,7 +20,6 @@ const App: React.FC = () => {
             <Route path="/nova-prova" element={<NovaProvaPage />} />
             <Route path="/provas" element={<ListaProvasPage />} />
             <Route path="/provas/:id" element={<ProvaDetalhePage />} />
-            <Route path="/config-gemini" element={<ConfigGeminiPage />} />
           </Routes>
         </MainLayout>
       </Router>

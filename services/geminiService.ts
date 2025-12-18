@@ -9,12 +9,12 @@ interface GenerateParams {
   objetivo: string;
   conteudoBase: string[];
   nivelDificuldade: "baixa" | "media" | "alta";
-  apiKey: string;
   modelName: string;
 }
 
 export async function generateExamWithGemini(params: GenerateParams): Promise<Partial<Exam>> {
-  const ai = new GoogleGenAI({ apiKey: params.apiKey });
+  // A chave de API é obtida exclusivamente de process.env.API_KEY
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = buildExamGenerationPrompt(params);
 
   const response = await ai.models.generateContent({
@@ -38,13 +38,13 @@ export async function generateExamWithGemini(params: GenerateParams): Promise<Pa
                     type: Type.OBJECT,
                     properties: {
                       id: { type: Type.STRING },
-                      label: { type: Type.STRING, description: "A, B, C, D ou E" },
+                      label: { type: Type.STRING },
                       texto: { type: Type.STRING }
                     },
                     required: ["id", "label", "texto"]
                   }
                 },
-                alternativaCorretaId: { type: Type.STRING, description: "O ID da alternativa correta" },
+                alternativaCorretaId: { type: Type.STRING },
                 explicacao: { type: Type.STRING },
                 competenciaOuHabilidade: { type: Type.STRING }
               },

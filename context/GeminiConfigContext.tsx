@@ -1,49 +1,29 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { GeminiConfig } from '../types/settings';
-import { storageService } from '../services/storageService';
+import React, { createContext, useContext, useState } from 'react';
 import { AppMode } from '../types/exam';
 
-interface GeminiConfigContextType {
-  config: GeminiConfig;
-  setConfig: (config: GeminiConfig) => void;
+interface AppContextType {
   appMode: AppMode;
   setAppMode: (mode: AppMode) => void;
-  isConfigured: boolean;
+  selectedModel: string;
+  setSelectedModel: (model: string) => void;
 }
 
-const GeminiConfigContext = createContext<GeminiConfigContextType | undefined>(undefined);
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const GeminiConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [config, setConfigState] = useState<GeminiConfig>({
-    apiKey: '',
-    model: 'gemini-3-flash-preview'
-  });
   const [appMode, setAppMode] = useState<AppMode>('professor');
-
-  useEffect(() => {
-    const saved = storageService.getGeminiConfig();
-    if (saved) {
-      setConfigState(saved);
-    }
-  }, []);
-
-  const setConfig = (newConfig: GeminiConfig) => {
-    setConfigState(newConfig);
-    storageService.saveGeminiConfig(newConfig);
-  };
-
-  const isConfigured = !!config.apiKey;
+  const [selectedModel, setSelectedModel] = useState('gemini-3-flash-preview');
 
   return (
-    <GeminiConfigContext.Provider value={{ config, setConfig, appMode, setAppMode, isConfigured }}>
+    <AppContext.Provider value={{ appMode, setAppMode, selectedModel, setSelectedModel }}>
       {children}
-    </GeminiConfigContext.Provider>
+    </AppContext.Provider>
   );
 };
 
 export const useGeminiConfig = () => {
-  const context = useContext(GeminiConfigContext);
+  const context = useContext(AppContext);
   if (!context) {
     throw new Error("useGeminiConfig must be used within a GeminiConfigProvider");
   }

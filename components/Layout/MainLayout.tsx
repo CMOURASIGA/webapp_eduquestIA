@@ -6,7 +6,6 @@ import {
   LayoutDashboard, 
   PlusCircle, 
   FileText, 
-  Settings, 
   Menu, 
   X,
   GraduationCap,
@@ -14,7 +13,7 @@ import {
 } from 'lucide-react';
 
 export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { appMode, setAppMode, isConfigured } = useGeminiConfig();
+  const { appMode, setAppMode } = useGeminiConfig();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
 
@@ -22,7 +21,6 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
     { label: 'Nova Prova', path: '/nova-prova', icon: PlusCircle, professorOnly: true },
     { label: 'Provas Salvas', path: '/provas', icon: FileText },
-    { label: 'Config. Gemini', path: '/config-gemini', icon: Settings },
   ];
 
   const filteredNavItems = navItems.filter(item => !item.professorOnly || appMode === 'professor');
@@ -94,14 +92,11 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
               </button>
             </div>
           </div>
-          
-          {!isConfigured && (
-            <div className="mt-4 p-2 bg-amber-900/30 border border-amber-800/50 rounded-lg">
-              <p className="text-[10px] leading-tight text-amber-200">
-                ⚠️ Configure o Gemini para gerar provas.
-              </p>
-            </div>
-          )}
+          <div className="mt-4 p-2 bg-indigo-900/30 border border-indigo-800/50 rounded-lg">
+            <p className="text-[10px] leading-tight text-indigo-200">
+              Powered by Gemini 3 IA
+            </p>
+          </div>
         </div>
       </aside>
 
