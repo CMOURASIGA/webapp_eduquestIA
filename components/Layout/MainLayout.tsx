@@ -41,7 +41,9 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
       {/* Mobile Header */}
       <header className="md:hidden bg-white border-b px-4 py-3 flex items-center justify-between sticky top-0 z-50 print:hidden">
         <div className="flex items-center gap-2">
-          <GraduationCap className="text-indigo-600" size={28} />
+          <div className="bg-indigo-600 p-1.5 rounded-lg text-white">
+            <GraduationCap size={20} />
+          </div>
           <h1 className="font-black text-xl text-slate-800 italic">EduQuest</h1>
         </div>
         <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
@@ -57,8 +59,11 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 shadow-2xl
       `}>
         <div className="p-8 hidden md:flex flex-col items-center gap-2 border-b border-slate-800">
-          <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 mb-2">
-            <GraduationCap size={36} />
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+            <div className="relative w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 mb-2">
+              <GraduationCap size={36} />
+            </div>
           </div>
           <h1 className="font-black text-xl text-white italic tracking-tighter">EduQuest IA</h1>
           <div className="px-3 py-1 bg-white/5 rounded-full border border-white/10">
